@@ -1,2 +1,4 @@
 *.lock
 *.lock~
+*.gpr
+BlinxDecomp.rep/
