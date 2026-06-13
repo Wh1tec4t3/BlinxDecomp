@@ -168,3 +168,39 @@ current_level_id / 4:
   mundo 5   → boss_a (003786a8)
   mundos 7-8 → boss_a (00378900)
   último    → lasbos01 (00378a68)
+
+////////////////////////////////////////////////////
+
+## Sistema de tienda
+
+### load_shop_assets (000e0df0)
+Carga todos los assets de la tienda al entrar.
+
+### render_shop (000e1a50)
+Renderiza la UI de la tienda cada frame.
+
+### Items identificados
+- i_s_payment_xx   → moneda principal
+- i_s_hearts_xx    → corazones
+- i_s_retryheart_xx → corazón de retry
+- i_s_TS-1000_xx   → modelo sweeper TS-1000
+- i_s_timebowl_xx  → recipiente de tiempo
+- i_s_lifevessel_xx → recipiente de vida
+
+### Trajes (jackets)
+z_p_jacket_[rd/am/sb/or/ri/st/cm/zb/tc/mt]
+10 variantes de color del traje de Blinx
+
+### Archivos de tienda
+shop01_xx → UI principal
+shop02_xx → moneda
+shop03_xx → items especiales
+shop05_xx → corazones
+shop_com  → assets comunes
+
+### Grid de items
+5 columnas × N filas
+Separación: 35px horizontal, 26px vertical
+
+### Slots de equipo
+5 slots simultáneos (DAT_004c4b80 al DAT_004c4b90)
