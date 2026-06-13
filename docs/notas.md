@@ -140,3 +140,31 @@ Jefes mundos 1/3: media\8_boss13.bin
 Jefes mundos 2/4: media\8_boss24.bin
 Último jefe:      media\8_lasbos.bin
 Enemigos normales: media\7_enese.bin
+
+////////////////////////////////////////////////////
+
+## Inicialización de nivel (init_level - 000a5cd0)
+
+- Resetea world_time, real_time_counter, time_expired_flag a 0
+- Llama a load_level(DAT_0050af48) — ID del nivel seleccionado
+- DAT_0050af48 = nivel actualmente seleccionado en menú
+
+### Nombres de mundos internos
+current_level_id / 4:
+  0 → round + "1d" (0x3164)
+  1 → round + "2d"
+  2 → round + "3d"
+  3 → round + "4d"
+  4 → round + "5d"
+  5 → round + "6d"
+  7 → round + "8d"
+  8 → round + "9d"
+  0x24 → "BossDemo"
+
+### Jefes por mundo
+  mundo 0   → boss_a (003784f0)
+  mundos 1-2 → boss_a (00378450)
+  mundos 3-4 → boss_a (003785b8)
+  mundo 5   → boss_a (003786a8)
+  mundos 7-8 → boss_a (00378900)
+  último    → lasbos01 (00378a68)
