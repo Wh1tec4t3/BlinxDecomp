@@ -57,3 +57,32 @@ offset 0x34 → read_size (int)
 - Exactamente 17 caracteres: XXXXXXXX.YYYYYYYY
 - Ambas partes son números hexadecimales
 - Posición 8 siempre es un punto '.'
+
+////////////////////////////////////////////////////
+
+## Sistema de Tiempo (world_update - 000a6970)
+
+### Variables principales
+- world_time    (DAT_0050c81c) — tiempo acumulado del mundo, máx 17999.0
+- time_speed    (DAT_0050c818) — velocidad del tiempo
+- time_scale    (DAT_0050a9e4) — escala de tiempo para física
+- real_time     (DAT_0050a9a4) — contador de frames reales, máx 19800
+- time_power    (DAT_0050a988) — estado del poder de tiempo activo
+- is_replay     (DAT_0050aae4) — 0=grabar, 1=reproducir
+
+### Velocidades de tiempo
+ 1.0  = normal
+ 0.25 = Slow
+-1.0  = Reverse
+-2.0  = Reverse rápido  
+ 2.0  = Forward
+ 0.0  = Pause
+
+### Sistema de replay
+- Graba estado del jugador cada frame en replay_buffer (DAT_0050d458)
+- Buffer indexado por real_time * 0x3c
+- Reproduce exactamente en modo replay
+
+### Límites
+- world_time máximo: 17999.0
+- real_time máximo: 19800 frames (660 segundos a 30fps)
