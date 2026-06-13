@@ -231,3 +231,36 @@ SDL2 reemplaza XInput directamente:
 - Combina input de hasta 4 controles (OR de botones)
 - Clamp de ejes a [-32768, 32767]
 - Escribe resultado procesado de vuelta a DAT_003e08a0
+
+////////////////////////////////////////////////////
+
+## Sistema de entidades del jugador
+
+### Vtable del jugador (encontrada en runtime en 003e5b31)
+offset 0x6c → FUN_000b4690  — dispatcher de comportamiento
+offset 0x70 → player_entity_update (000b46e0)
+offset 0x74 → LAB_000b4c80
+offset 0x78 → mfCiFile_destructor
+
+### Constructor del jugador (000b4d40)
+- Inicializa vtable y valores base
+- offset 0x08 → escala inicial 1.0f
+- offset 0x54-0x5c → velocidad XYZ inicial 0
+- offset 0x60/0x61 → flags de estado activo
+
+### Tabla de estados de comportamiento (001ddfa0)
+estado 0 → NULL
+estado 1 → 000b4a30 — sistema de succión del sweeper
+estado 2 → 000b47c0 — animaciones del jugador
+estado 3 → 000b49a0 — stub vacío
+estado 4 → NULL
+estado 5 → 000b4760 — transición flag=1
+estado 6 → 000b4780 — transición flag=2 + sonido (ID 0x200d)
+estado 7 → 000b4990 — transición flag=3
+estado 8 → 000b4d40 — constructor
+estado 9 → 000b4c80 — desconocido
+
+### Nota
+Las físicas reales de movimiento/gravedad no están en esta tabla.
+Probablemente en FUN_000aeb10 — llamada 8 veces en FUN_000b4690
+con datos desde offset 0x3e de la entidad.
