@@ -6,6 +6,8 @@ Documentación del proyecto de ingeniería inversa y port a PC.
 - xemu
 - extract-xiso
 
+////////////////////////////////////////////////////
+
 ## Sistema de archivos mfCi
 Clase de Artoon para manejo de archivos con sistema de handles propio.
 
@@ -38,3 +40,20 @@ offset 0x34 → read_size (int)
 0037d790 → mfCiSeek      ✓
 0037d794 → mfCiTell      ✓
 0037d798 → mfCiReqRd     ✓
+
+////////////////////////////////////////////////////
+
+### Vtable completa (0037d778)
+0037d778 → mfCiFile_destructor   — destructor vacío
+0037d77c → mfCiSetErrorCallback  — configura sistema de logging
+0037d780 → mfCiGetSector         — parsea nombre de archivo (formato XXXXXXXX.YYYYYYYY)
+0037d788 → mfCiOpen              ✓
+0037d78c → mfCiClose             ✓
+0037d790 → mfCiSeek              ✓
+0037d794 → mfCiTell              ✓
+0037d798 → mfCiReqRd             ✓
+
+### Formato de nombres de archivo
+- Exactamente 17 caracteres: XXXXXXXX.YYYYYYYY
+- Ambas partes son números hexadecimales
+- Posición 8 siempre es un punto '.'
