@@ -204,3 +204,30 @@ Separación: 35px horizontal, 26px vertical
 
 ### Slots de equipo
 5 slots simultáneos (DAT_004c4b80 al DAT_004c4b90)
+
+////////////////////////////////////////////////////
+
+## Sistema de Input (read_gamepad_input - 000f25d0)
+
+### Función principal
+- Lee estado de hasta 4 controles simultáneos
+- Usa XInputGetState de Xbox → equivalente SDL_GameControllerGetAxis en PC
+
+### Ejes del control
+- analog_x/y → stick izquierdo (movimiento del jugador)
+- analog_z/w → stick derecho (control de cámara)
+- Deadzone: 25% (ignora valores < 0.25)
+- Normalización: valor_entero * (1/32767) → float [-1.0, 1.0]
+
+### Para el port
+SDL2 reemplaza XInput directamente:
+- XInputOpen     → SDL_GameControllerOpen
+- XInputGetState → SDL_GameControllerGetAxis
+- XInputClose    → SDL_GameControllerClose
+
+## Sistema de Input del Jugador (process_player_input - 0009ebc0)
+- Lee DAT_003e08a0 con stride 0x1e4 por jugador
+- DAT_003eab90 = índice del jugador activo
+- Combina input de hasta 4 controles (OR de botones)
+- Clamp de ejes a [-32768, 32767]
+- Escribe resultado procesado de vuelta a DAT_003e08a0
