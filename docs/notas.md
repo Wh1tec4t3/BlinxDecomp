@@ -86,3 +86,26 @@ offset 0x34 → read_size (int)
 ### Límites
 - world_time máximo: 17999.0
 - real_time máximo: 19800 frames (660 segundos a 30fps)
+
+////////////////////////////////////////////////////
+
+## Tabla de estados del juego (001d0bc0)
+Cada entrada ocupa 0x20 bytes
+
+01 → StageStart      — inicio del nivel
+02 → StageClear      — nivel completado  
+03 → TimeOver        — tiempo agotado
+04 → GateOpen        — puerta abierta
+05 → tomSTART        — aparicion de los Tom Tom Gang
+06 → tomEND          — fin de aparicion de los Tom Tom Gang
+07 → Get             — recoger item
+08 → NotGet          — item no obtenido
+09 → TimeStop        — poder Pause
+10 → TimeFF          — poder Fast Forward
+11 → TimeSlow        — poder Slow
+12 → TimeRwd         — poder Rewind
+13 → TimeRec         — poder Record
+14 → Retry           — reintentar
+15 → TimeControlEnd  — fin control de tiempo
+16 → good            — resultado bueno
+17 → bad             — resultado malo
