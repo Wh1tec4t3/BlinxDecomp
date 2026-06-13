@@ -264,3 +264,76 @@ estado 9 → 000b4c80 — desconocido
 Las físicas reales de movimiento/gravedad no están en esta tabla.
 Probablemente en FUN_000aeb10 — llamada 8 veces en FUN_000b4690
 con datos desde offset 0x3e de la entidad.
+
+////////////////////////////////////////////////////
+
+## Sistema de entidades del jugador
+
+### Vtable del jugador (encontrada en runtime en 003e5b31)
+offset 0x6c → player_movement_dispatch (000b4690) — dispatcher de comportamiento
+offset 0x70 → player_entity_update (000b46e0)
+offset 0x74 → LAB_000b4c80
+offset 0x78 → mfCiFile_destructor
+
+### Constructor del jugador (000b4d40)
+- Inicializa vtable y valores base
+- offset 0x08 → escala inicial 1.0f
+- offset 0x54-0x5c → velocidad XYZ inicial 0
+- offset 0x60 → movement_state (uint8) — estado actual de movimiento
+- offset 0x61 → movement_state_prev (uint8) — estado anterior
+- offset 0x62 → movement_substate (ushort) — sub-estado interno
+
+### Struct de entidad Blinx (base: blinx_entity_array, stride 0x1e4)
+offset 0x00 → object_type (short) — 0x6e = jugador
+offset 0x02 → buttons[8] (byte[8])
+offset 0x0a → stick_x (short)
+offset 0x0c → anim_counter (float)
+offset 0x0e → stick_y (short)
+offset 0x60 → movement_state (uint8)
+offset 0x61 → movement_state_prev (uint8)
+offset 0x62 → movement_substate (ushort)
+offset 0x7c → active_nodes[8] (void*[8]) — punteros a nodos activos
+
+### Tabla de estados de comportamiento (001ddfa0)
+estado 0 → NULL
+estado 1 → 000b4a30 — pit kill handler (zona específica, coords hardcodeadas)
+                       substate en +0x62, kill via FUN_000dead0
+estado 2 → 000b47c0 — animaciones del jugador
+estado 3 → 000b49a0 — stub vacío
+estado 4 → NULL
+estado 5 → 000b4760 — player_state_reset (escribe movement_state=1, limpia effect_spawned_flag)
+estado 6 → 000b4780 — transición flag=2 + sonido (ID 0x200d)
+estado 7 → 000b4990 — transición flag=3
+estado 8 → 000b4d40 — constructor
+estado 9 → 000b4c80 — desconocido
+
+### Nota
+Las físicas reales de movimiento/gravedad no están en esta tabla.
+FUN_000aeb10 es un entity_node_iterator — procesa 8 punteros a nodos
+desde offset +0x7c de la entidad. Físicas probablemente en el caller
+de player_movement_dispatch (subir en el call tree).
+
+////////////////////////////////////////////////////
+
+## Sistema de Input del Jugador (process_player_input - 0009ebc0)
+- Lee blinx_entity_array (003e08a0) con stride 0x1e4 por entidad
+- active_entity_index (003eab90) — índice de entidad activa (0-3)
+- replay_mode (003e0aa4) — 0 = entidades grabadas activas, 1 = control normal
+- En replay_mode=0: acumula input de hasta 4 entidades simultáneas (OR de botones)
+- En replay_mode=1: usa active_entity_index directamente
+- Clamp de ejes a [-32768, 32767]
+- Clamp de ejes flotantes a [-1.0, 1.0]
+- Escribe resultado procesado de vuelta a blinx_entity_array
+- FUN_000f2310 = button_edge_detector (procesa pressed/released por frame)
+- blinx_entity_array soporta hasta 4 entidades simultáneas (poderes de tiempo)
+
+### Globals de input procesado
+003e08ca → input_stick_x (short)
+003e08cc → input_stick_y (short)
+003e08ce → input_stick_rx (short)
+003e08d0 → input_stick_ry (short)
+003e08d4 → input_axis_lx (float, clamp ±1.0)
+003e08d8 → input_axis_ly (float, clamp ±1.0)
+003e08dc → input_axis_rx (float, clamp ±1.0)
+003e08e0 → input_axis_ry (float, clamp ±1.0)
+003e08c0 → input_buttons (ushort)
