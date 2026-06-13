@@ -109,3 +109,34 @@ Cada entrada ocupa 0x20 bytes
 15 → TimeControlEnd  — fin control de tiempo
 16 → good            — resultado bueno
 17 → bad             — resultado malo
+
+////////////////////////////////////////////////////
+
+## Sistema de niveles (load_level - 000bd570)
+
+### IDs de niveles
+0x00-0x03 → Mundos de cielo (sora)
+0x04-0x07 → Mundos de madera/plata
+0x08-0x0b → Mundos de hongos (kinoko)
+0x0c-0x0f → Mundos de castillo (taimatu)
+0x10-0x13 → Mundos de acantilado (gake)
+0x14-0x16 → Mundos industriales (tetu)
+0x17      → Mundo de rocas (iwa)
+0x1c-0x1f → Mundos de hielo (ice/aurola)
+0x20-0x23 → Mundos especiales
+0x24      → Nivel especial (pilares)
+0x25      → Nivel especial (escalones)
+0x27      → Último jefe (last boss)
+
+### Reutilización de assets
+0x18 → usa assets de 0x13
+0x19 → usa assets de 0x1f
+0x1a → usa assets de 0x17
+0x1b → usa assets de 0x23
+
+### Audio por mundo
+Cada 4 niveles comparten audio: media\10_rd[N]se.bin
+Jefes mundos 1/3: media\8_boss13.bin
+Jefes mundos 2/4: media\8_boss24.bin
+Último jefe:      media\8_lasbos.bin
+Enemigos normales: media\7_enese.bin
