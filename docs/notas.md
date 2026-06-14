@@ -337,3 +337,176 @@ de player_movement_dispatch (subir en el call tree).
 003e08dc → input_axis_rx (float, clamp ±1.0)
 003e08e0 → input_axis_ry (float, clamp ±1.0)
 003e08c0 → input_buttons (ushort)
+
+////////////////////////////////////////////////////
+
+## Sistema de entidades del jugador
+
+### Call tree completo
+game_main
+  → gameplay_update
+    → physics_and_entity_update (000a9120)
+      → physics_set_gravity (0002b760) — vector (0, -1, 0)
+        → physics_propagate_gravity (0002ec60) — copia a globals
+          → physics_apply_gravity (0002b7d0) — escribe al engine
+      → camera_update (00024650)
+      → shader_constants_setup (0002ec00)
+    → gameplay_hud_update (000a9260)
+      → entity_list_update (000b3ff0) — itera DAT_006304a0
+        → entity->vtable[0x74] = player_entity_update (000b46e0)
+          → entity->vtable[0x6c] = player_movement_dispatch (000b4690)
+            → PTR_001ddfa0[movement_state](entity)
+
+### Vtable del jugador (embebida en entidad)
+offset 0x6c → player_movement_dispatch (000b4690) — dispatcher de comportamiento
+offset 0x70 → player_entity_update (000b46e0) — update de animación
+offset 0x74 → LAB_000b4c80 — desconocido, llamado por entity_list_update
+offset 0x78 → mfCiFile_destructor
+
+### Constructor del jugador (000b4d40)
+- Inicializa vtable y valores base
+- offset 0x08 → escala inicial 1.0f (0x3f800000)
+- offset 0x0c → 0 (desconocido)
+- offset 0x02 → 0 (desconocido, short)
+- offset 0x20 → bloque inicializado por FUN_000947a0
+- offset 0x40 → bloque inicializado por FUN_000947a0
+- offset 0x54-0x5c → velocidad XYZ inicial 0
+- offset 0x60 → movement_state = 1 (inicial)
+- offset 0x61 → movement_state_prev = 1 (inicial)
+- offset 0x62 → movement_substate = 0
+- offset 0x6c → vtable: player_movement_dispatch
+- offset 0x70 → vtable: player_entity_update
+- offset 0x74 → vtable: player_entity_update
+- offset 0x78 → vtable: mfCiFile_destructor
+- offset 0x7c → active_nodes[8] inicializados a 0
+- offset 0x9c → 0 (desconocido)
+
+### Struct de entidad Blinx (base: blinx_entity_array 003e08a0, stride 0x1e4)
+offset 0x00 → object_type (short) — 0x6e = jugador
+offset 0x02 → buttons[8] (byte[8])
+offset 0x0a → stick_x (short)
+offset 0x0c → anim_counter (float)
+offset 0x0e → stick_y (short)
+offset 0x60 → movement_state (uint8)
+offset 0x61 → movement_state_prev (uint8)
+offset 0x62 → movement_substate (ushort)
+offset 0x63 → state_flags (byte) — bit 0x20=FLAG_FROZEN, bit 0x40=FLAG_SKIP_UPDATE
+offset 0x6c → vtable_movement (code*)
+offset 0x70 → vtable_update (code*)
+offset 0x74 → vtable_entity_update (code*)
+offset 0x78 → vtable_destructor (code*)
+offset 0x7c → active_nodes[8] (void*[8])
+offset 0x9c → desconocido
+offset 0x1ea → alive_flag (char)
+offset 0x244 → secondary_counter (int)
+
+### Nodo de lista enlazada (DAT_006304a0)
+offset 0x04 → next (node*)
+offset 0x08 → entity_ptr (void*)
+
+### Tabla de estados de comportamiento (001ddfa0)
+estado 0 → NULL
+estado 1 → 000b4a30 — pit kill handler (zona específica, coords hardcodeadas)
+                       substate en +0x62, kill via FUN_000dead0
+estado 2 → 000b47c0 — animaciones del jugador
+estado 3 → 000b49a0 — stub vacío
+estado 4 → NULL
+estado 5 → 000b4760 — player_state_reset (escribe movement_state=1, limpia effect_spawned_flag)
+estado 6 → 000b4780 — transición flag=2 + sonido (ID 0x200d) — sin verificar
+estado 7 → 000b4990 — transición flag=3 — sin verificar
+estado 8 → 000b4d40 — constructor
+estado 9 → 000b4c80 — desconocido
+
+### Gravedad
+- Vector: (0.0, -1.0, 0.0) — hardcodeado en physics_and_entity_update
+- gravity_x (008d4730), gravity_y (008d4734), gravity_z (008d4738)
+- Constante de escala física: 9.587378e-05
+- physics_tick (009de9d4) — acumulador, += 0x147 por frame
+
+////////////////////////////////////////////////////
+
+## Sistema de Input del Jugador (process_player_input - 0009ebc0)
+- Lee blinx_entity_array (003e08a0) con stride 0x1e4 por entidad
+- active_entity_index (003eab90) — índice de entidad activa (0-3)
+- replay_mode (003e0aa4) — 0 = entidades grabadas activas, 1 = control normal
+- En replay_mode=0: acumula input de hasta 4 entidades simultáneas (OR de botones)
+- En replay_mode=1: usa active_entity_index directamente
+- Clamp de ejes a [-32768, 32767]
+- Clamp de ejes flotantes a [-1.0, 1.0]
+- Escribe resultado procesado de vuelta a blinx_entity_array
+- button_edge_detector (000f2310) — procesa pressed/released por frame
+- blinx_entity_array soporta hasta 4 entidades simultáneas (poderes de tiempo)
+
+### Globals de input procesado
+003e08ca → input_stick_x (short)
+003e08cc → input_stick_y (short)
+003e08ce → input_stick_rx (short)
+003e08d0 → input_stick_ry (short)
+003e08d4 → input_axis_lx (float, clamp ±1.0)
+003e08d8 → input_axis_ly (float, clamp ±1.0)
+003e08dc → input_axis_rx (float, clamp ±1.0)
+003e08e0 → input_axis_ry (float, clamp ±1.0)
+003e08c0 → input_buttons (ushort)
+
+////////////////////////////////////////////////////
+
+## Globals identificados en esta sesión
+
+### Sistema de físicas
+008d4730 → gravity_x (float) — siempre 0.0
+008d4734 → gravity_y (float) — siempre -1.0
+008d4738 → gravity_z (float) — siempre 0.0
+009de9d4 → physics_tick (int) — acumulador, += 0x147 por frame
+0050afd4 → physics_detail_level (int) — pasado a colisiones y resolución
+009dea10 → physics_paused (int) — bloquea update de cámara y físicas
+
+### Sistema de cámara
+009de9a4 → cam_pos_x (float)
+009de9a8 → cam_pos_y (float)
+009de9ac → cam_pos_z (float)
+009de934 → cam_offset_x (float)
+009de938 → cam_offset_y (float)
+009de93c → cam_offset_z (float)
+009de9cc → cam_ang_vel_1 (float)
+009de9c8 → cam_ang_vel_2 (float)
+009de9d0 → cam_ang_vel_3 (float)
+00667e18 → screen_scale_y (float) — escala de proyección vertical
+0039ddd0 → view_matrix (float[16]) — pasada a D3DDevice_SetTransform
+0050a9d0 → cam_dist_vertical (float)
+0050aab4 → cam_offset_screen (float)
+006305a0 → hit_entity_id (int)
+
+### Sistema de render/shaders
+008d5e60 → light0_direction (float[3])
+008d5a30 → light0_color (float[3])
+008762d0 → light1_direction (float[3])
+00668080 → light1_color (float[3])
+
+### Sistema de entidades
+003e0aa4 → replay_mode (int) — 0=entidades grabadas activas, 1=control normal
+003eab90 → active_entity_index (int) — índice de entidad activa (0-3)
+
+### Sistema de juego
+0050a9d4 → level_time_limit (float)
+0050ab2c → fade_out_flag (int)
+0038b008 → transition_type (int) — siempre 2 en transiciones
+0050a9cc → transition_timer (int) — 0x1e = 30 frames en transiciones
+0050c7b8 → retry_level_id (int)
+0050a97c → cutscene_mode (int)
+0050c820 → time_frozen_flag (int) — ya teníamos time_power, confirmar si es lo mismo
+0050af84 → snapshot_pending (int)
+0050c828 → snapshot_time (float)
+009e0280 → snapshot_ready (int)
+0050aaf8 → is_pal_mode (int) — controla framerate y resolución
+003eab74 → frame_table_index (int) — índice en tabla de frames PAL
+001dc2a8 → pal_frame_table (int[]) — tabla de frames para PAL
+004c31cc → memory_card_slots (int)
+0050a988 → time_power (int) — ya documentado como global_sync_state en esta sesión, nombre corregido al original
+005085e8 → effect_spawned_flag (int) — ya documentado
+004ebc24 → zone_object (void*) — ya documentado, offsets +0x175/0x176/0x177/0x188
+
+### zone_object — offsets nuevos
+offset 0x175 → active_powers_count (char)
+offset 0x176 → time_stones_count (char)
+offset 0x177 → time_stone_ids[4] (char[4])
+offset 0x188 → power_slots[N] (int[]) — punteros a poderes activos
