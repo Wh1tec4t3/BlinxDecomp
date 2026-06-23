@@ -400,3 +400,52 @@ CollisionSurface_ProjectHeight_Mesh
 - bounding box early-out
 - heightmap O(1)
 - mesh per-triangle
+
+### Player_SuctionUpdate (0007c700)
+Controla el sistema de succión del sweeper. Acumula suction_timer cada frame
+y ejecuta fases según umbrales (30.0, 40.0, 49.0).
+
+Fases:
+- < 30.0  → tracking del target + actualiza ángulo sweep
+- 30-40   → activa flag 0x400, calcula suction_speed, lanza partículas (tipo 1, pool 5)
+- 40-49   → aplica rotación al sweeper hacia el target
+- > 49.0  → si bit31 activo: countdown suction_countdown, al llegar a <0 termina succión
+
+### Campos de la entidad del jugador (PlayerEntity struct — WIP)
+offset 0x02  → short     — desconocido
+offset 0x04  → float     — buffer/pos anterior
+offset 0x08  → float     — scale
+offset 0x0C  → ?         — desconocido (init 0)
+offset 0x10  → uint      — entity_flags
+                           bit10 (0x400) = succión activa
+                           bit31 (0x80000000) = fase final succión
+offset 0x14  → float     — pos_y
+offset 0x18  → float     — pos_z
+offset 0x1C  → float     — suction_timer (acumula hasta 30/40/49)
+offset 0x20  → float     — suction_pos_x ⚠ conflicto con rotation_quat, pendiente confirmar
+offset 0x24  → float     — sweep_angle
+offset 0x28  → float     — suction_pos_z
+offset 0x2C  → float     — desconocido (W del bloque en +0x20)
+offset 0x30  → float     — rot_x
+offset 0x34  → float     — rot_y
+offset 0x38  → float     — rot_z
+offset 0x40  → float[4]  — bloque aceleración/dirección (xyzw, init 0/0/0/1)
+offset 0x54  → float     — vel_x (init 0)
+offset 0x58  → float     — vel_y (init 0)
+offset 0x5C  → float     — vel_z (init 0)
+offset 0x60  → byte      — behavior_state (init 1)
+offset 0x61  → byte      — behavior_state_prev (init 1)
+offset 0x62  → short     — suction_state
+offset 0x64  → float     — sweep_world_angle
+offset 0x68  → float     — desconocido (init 0 al terminar succión)
+offset 0x6C  → fn*       — vtable: Player_BehaviorDispatcher
+offset 0x70  → fn*       — vtable: player_entity_update
+offset 0x74  → fn*       — vtable: player_entity_render
+offset 0x78  → fn*       — vtable: mfCiFile_destructor
+offset 0x7C  → SpatialNode*[8] — particle_slots (init 0)
+offset 0x9C  → uint      — active_particle_slot (init 0, módulo 8)
+offset 0xC5  → byte      — fx_counter (valores 0x32, 0x64)
+offset 0xD2  → char      — suction_duration_mult
+offset 0xD4  → short     — suction_duration (= suction_duration_mult * 0x5a)
+offset 0xD6  → short     — suction_countdown (decrementa, termina succión al llegar a <0)
+offset 0xE4  → float     — desconocido
