@@ -449,3 +449,105 @@ offset 0xD2  → char      — suction_duration_mult
 offset 0xD4  → short     — suction_duration (= suction_duration_mult * 0x5a)
 offset 0xD6  → short     — suction_countdown (decrementa, termina succión al llegar a <0)
 offset 0xE4  → float     — desconocido
+
+////////////////////////////////////////////////////
+
+## Player Entity Struct (continuación)
+
+### Tabla actualizada de offsets confirmados
+
+| Offset | Tipo | Nombre | Fuente |
+|--------|------|--------|--------|
+| `+0x00` | byte | `entity_type` | `player_entity_update` |
+| `+0x02` | short | `entity_id` | `Player_Constructor` |
+| `+0x04` | uint | `state` | `Player_SuctionEnd`, `Player_SuctionFail` |
+| `+0x08` | uint | `prev_state` | `Player_SuctionEnd` |
+| `+0x0c` | float | `anim_frame` | `player_entity_update` ASM |
+| `+0x10` | uint | `entity_flags` | `Player_SuctionEnd` ASM, múltiples funciones |
+| `+0x14` | float | `render_pos_y` | `player_entity_render` ASM |
+| `+0x18` | float | `render_pos_z` | `player_entity_render` ASM |
+| `+0x1c` | float | `suction_timer` | `Player_SuctionUpdate` |
+| `+0x20` | float | `pos_x` | `Player_SuctionUpdate`, `Player_TrackTarget` |
+| `+0x24` | float | `pos_y` | `Player_TrackTarget` |
+| `+0x28` | float | `pos_z` | `Player_SuctionUpdate`, `Player_TrackTarget` |
+| `+0x2c` | float | `pos_w` | `Entity_ResetBlock` (1.0f) |
+| `+0x30` | float[3] | `anim_state_block` (euler XYZ) | `player_entity_update` ASM, `player_entity_render` ASM |
+| `+0x3c` | ? | ? | hueco |
+| `+0x40` | float[4] | `rot_quat` (XYZW) | `Player_Constructor` |
+| `+0x50` | float[4] | ? (reset a quaternion identidad) | `Player_SuctionEnd` |
+| `+0x54` | float | `vel_x` (tentativo) | `Player_Constructor` (= 0) |
+| `+0x58` | float | `vel_y` (tentativo) | `Player_Constructor` (= 0) |
+| `+0x5c` | float | `vel_z` (tentativo) | `Player_Constructor` (= 0) |
+| `+0x60` | byte | `behavior_state` | `Player_Constructor`, Transitions |
+| `+0x61` | byte | `behavior_state_prev` | `Player_Transitions` |
+| `+0x62` | short | `anim_state` | `player_entity_update` |
+| `+0x63` | byte | `update_flags` | `player_entity_update` |
+| `+0x64` | float | `rot_y` | `Player_SuctionUpdate`, `FUN_0007a230` |
+| `+0x6c` | ptr | `Player_BehaviorDispatcher` (init only) | `Player_Constructor` |
+| `+0x70` | float[4] | `target_pos` | `Player_TimeControlActivate` |
+| `+0x74` | float | `facing_angle` | `Player_SuctionFail` (= π) |
+| `+0x78` | ptr | destructor (init only) | `Player_Constructor` |
+| `+0x7c` | uint[8] | `spatial_nodes[8]` | `Player_BehaviorDispatcher` |
+| `+0x80` | float[3] | `last_surface_pos` | `Player_OnLand` |
+| `+0x84` | float | `launch_speed` | `Player_TimeControlActivate` |
+| `+0x9c` | ? | ? | hueco |
+| `+0xb0` | ptr | `collision_surface_ptr` | `Player_CheckLanding`, `Player_OnLand` |
+| `+0xc4` | byte | `suction_flags` | `Player_SuctionAbort`, `FUN_00078d90` |
+| `+0xc5` | byte | `suction_state` | `Player_SuctionUpdate` |
+| `+0xc6` | byte | `collection_count` | `Player_OnLand` |
+| `+0xc7` | byte | `suction_upgraded` | `Player_SuctionUpdate` |
+| `+0xc8` | byte | `collection_tier` | `Player_SuctionAbort` |
+| `+0xca` | byte[8] | `collected_items[8]` | `Player_OnLand` |
+| `+0xd2` | byte | `player_tier` | `Player_TrackTarget`, múltiples |
+| `+0xd4` | short | `suction_count_timer` | `Player_SuctionUpdate` |
+| `+0xd6` | short | `suction_hits_remaining` | `Player_SuctionUpdate` |
+| `+0xd8` | uint | `suction_color` | `Player_UpdateSuctionRadius` |
+| `+0xe0` | float | `suction_range` | `Player_SuctionCollect` |
+| `+0xe4` | uint | `suction_reset` | `Player_SuctionEnd` (= 0) |
+| `+0xe8` | float | `suction_speed` | `Player_SuctionUpdate` |
+| `+0xec` | float | `suction_radius` | `Player_UpdateSuctionRadius` |
+| `+0xf0` | float | `suction_decay` | `Player_SuctionUpdate` |
+| `+0xf4` | float | `suction_duration` | `Player_SuctionUpdate` |
+| `+0xfc` | float | `track_angular_vel` | `Player_TrackTarget` |
+| `+0x100` | float | `suction_radius_prev` | `Player_UpdateSuctionRadius` |
+| `+0x108` | ptr | `suction_emitter_ptr` | `Player_SuctionUpdate` |
+
+---
+
+### Huecos pendientes
+- `+0x3c` — entre `anim_state_block` y `rot_quat`
+- `+0x50`..`+0x53` — primer campo del bloque reseteado a quaternion identidad en `Player_SuctionEnd`
+- `+0x9c`..`+0xaf` — entre `spatial_nodes` y `collision_surface_ptr`
+- `+0xb4`..`+0xbf` — entre `collision_surface_ptr` y `suction_flags` (si `+0xb0` es solo un ptr de 4 bytes, quedan 12 bytes)
+
+### Conflictos/notas
+- `+0x10`: el render ASM accede a `[ESI + 0x10]` como `render_pos_x` — **pendiente resolver**, probablemente el render recibe puntero desplazado
+- `+0x6c` y `+0x78`: function pointers en el constructor, pero el engine los reemplaza con datos en runtime — los ptrs reales viven en otra tabla del engine
+- `+0x70` y `+0x74`: mismo caso que arriba
+
+---
+
+### Renombres de funciones esta sesión
+- `FUN_0002c430` → `Math_Absf`
+- `FUN_00094560` → `Math_ClampAngleDeg`
+- `FUN_0002b670` → `Block16Copy`
+- `FUN_0007a230` → `Player_CheckLanding`
+- `FUN_0007a440` → `Player_UpdateSuctionRadius`
+- `FUN_0007b780` → `Player_OnLand`
+- `FUN_0007b9b0` → `Player_SuctionEject`
+- `FUN_0007c1f0` → `Player_SuctionTrack`
+| `FUN_00078d10` → `Player_SuctionAbort`
+- `FUN_00078d90` → `Player_SuctionCollect`
+- `FUN_0007c290` → `Player_SuctionLaunch`
+- `FUN_0007cc00` → `Player_SuctionSpin`
+- `FUN_00078930` → `Player_TimeControlActivate`
+- `FUN_00078c90` → `Player_SuctionFail`
+- `UndefinedFunction_0007bbc0` → `Player_SuctionFinalize`
+- `FUN_000c6df0` → `Collision_FindNearest`
+- `FUN_000265b0` → `Math_Vec3Distance`
+- `FUN_000c52a0` → `Collision_ProjectPoint`
+- `FUN_00094500` → `Physics_ProjectOntoSurface`
+- `FUN_0012743d` → `Math_Random`
+
+### Globals renombrados
+- `DAT_001d7eb0` → `suction_max_radius_table`
